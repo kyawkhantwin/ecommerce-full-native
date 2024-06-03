@@ -28,7 +28,7 @@ export default function App() {
             theme={theme === "light" ? DefaultTheme : DarkTheme}
           >
             <Stack.Navigator
-              initialRouteName="SignUp"
+              initialRouteName="Tabs"
               screenOptions={{ headerShown: false }}
             >
               <Stack.Screen name="Tabs" component={Tabs} />

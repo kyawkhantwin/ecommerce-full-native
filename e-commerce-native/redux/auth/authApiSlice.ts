@@ -2,10 +2,7 @@ import { createEntityAdapter } from "@reduxjs/toolkit";
 import apiSlice from "../api/apiSlice";
 
 const authAdapter = createEntityAdapter({
-  selectId: (user) => {
-    console.log("selectId", user);
-    return user.id;
-  },
+  selectId: (user) => user.id,
 });
 const initialState = authAdapter.getInitialState({});
 const authApiExtended = apiSlice.injectEndpoints({
@@ -17,7 +14,7 @@ const authApiExtended = apiSlice.injectEndpoints({
         body: { ...credentials },
       }),
       transformResponse: (responseData) => {
-        return authAdapter.setAll(initialState, responseData);
+        return authAdapter.setAll(initialState, [responseData]);
       },
     }),
     signUp: builder.mutation({
@@ -27,7 +24,7 @@ const authApiExtended = apiSlice.injectEndpoints({
         body: { ...credentials },
       }),
       transformResponse: (responseData) => {
-        return authAdapter.setAll(initialState, responseData);
+        return authAdapter.setAll(initialState, [responseData]);
       },
     }),
   }),

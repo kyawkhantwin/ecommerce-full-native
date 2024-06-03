@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ButtonText,
   Heading,
@@ -22,13 +22,24 @@ import { useLoginMutation } from "../../redux/auth/authApiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentUser, setCredentials } from "../../redux/auth/authSlice";
 import { selectCartByUserId } from "@/redux/reducer/cartsApiSlice";
+import { Dimensions } from "react-native";
 
 const Login = ({ navigation }) => {
+  const windowHeight = Dimensions.get("window").height;
+
   const dispatch = useDispatch();
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [login, { isSuccess, isError, error }] = useLoginMutation();
+
+  useEffect(() => {
+    if (isSuccess) {
+      navigation.navigate("Tabs"); // Adjust as needed
+    } else if (isError) {
+      console.error("Login error:", error);
+    }
+  }, [isSuccess, isError, error, navigation]);
 
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -40,14 +51,15 @@ const Login = ({ navigation }) => {
 
   const loginHandler = async () => {
     try {
-      const { user, token } = await login({
+      const userData = await login({
         emailOrUsername,
         password,
-      }).unwrap();
+      });
+      const data = userData.data.entities;
+      const user = Object.values(data)[0];
+      const token = user.token;
+
       dispatch(setCredentials({ user, token }));
-      if (isError) {
-        console.log(error);
-      }
     } catch (error) {
       console.error("Failed to login:", error);
     }
@@ -56,7 +68,7 @@ const Login = ({ navigation }) => {
   return (
     <SafeAreaView>
       <View
-        height="$full"
+        style={{ height: windowHeight }}
         paddingHorizontal="$8"
         display="flex"
         alignItems="center"
@@ -121,7 +133,7 @@ const Login = ({ navigation }) => {
           </VStack>
           <Divider my="$5" />
           <HStack>
-            <Text>Doesn't Have Account?</Text>
+            <Text>Don't Have an Account?</Text>
             <Pressable onPress={navigateTo}>
               <LinkText>Register</LinkText>
             </Pressable>

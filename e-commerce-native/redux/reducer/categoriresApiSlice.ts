@@ -12,13 +12,20 @@ const extendedApiSlice = apiSlice.injectEndpoints({
     getCategories: builder.query({
       query: () => "/categories",
       transformResponse: (responseData) => {
-
-        return categoriesAdapter.setAll(initialState, responseData);
+        // Handle the case where responseData is null or undefined
+        const data = responseData || [];
+        return categoriesAdapter.setAll(initialState, data);
       },
-      providesTags: (result, error, arg) => [
-        { type: "Category", id: "LIST" },
-        ...result.ids.map((id) => ({ type: "Category", id })),
-      ],
+      providesTags: (result, error, arg) => {
+        // Handle the case where result is undefined or empty
+        if (!result || !result.ids.length) {
+          return [{ type: "Category", id: "LIST" }];
+        }
+        return [
+          { type: "Category", id: "LIST" },
+          ...result.ids.map((id) => ({ type: "Category", id })),
+        ];
+      },
     }),
   }),
 });
@@ -41,4 +48,4 @@ export const {
   (state) => selectCategoriesData(state) ?? initialState
 );
 
-// TODO: create a category with id ,image and name
+// TODO: create a category with id, image, and name

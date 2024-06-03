@@ -30,7 +30,7 @@ const Cart: React.FC = () => {
   let content;
   if (isSuccess) {
     if (!selectUserCart) {
-      content = selectUserCart.products.map((product) => {
+      content = selectUserCart?.products.map((product) => {
         return (
           <CartCard
             price={product.price}

@@ -10,12 +10,18 @@ const extendedApiSlice = apiSlice.injectEndpoints({
     getOrders: builder.query({
       query: () => "/orders",
       transformResponse: (responseData) => {
-        return orderAdapter.setAll(initialState, responseData);
+
+
+        return orderAdapter.setAll(initialState, responseData || []);
       },
-      providesTags: (result, error, arg) => [
+      providesTags: (result, error, arg) => {
+        if(!result || !result.ids.length){
+          [{ type: "Order", id: "LIST" }]
+        }
+        return [
         { type: "Order", id: "LIST" },
         ...result.ids.map((id) => ({ type: "Order", id })),
-      ],
+      ]}
     }),
   }),
 });

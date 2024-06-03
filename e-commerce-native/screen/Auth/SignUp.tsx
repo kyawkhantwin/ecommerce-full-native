@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ButtonText,
   Heading,
@@ -19,24 +19,35 @@ import { EyeIcon, EyeOffIcon } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Divider } from "@gluestack-ui/themed";
 import { useSignUpMutation } from "../../redux/auth/authApiSlice";
+import { Dimensions } from "react-native";
 
 const SignUp = ({ navigation }) => {
+  const windowHeight = Dimensions.get("window").height;
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [location, setLocation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [signUp, { isSuccess, isError, error }] = useSignUpMutation();
+  const [signUp, { isSuccess, isError, error, isLoading, isUninitialized }] =
+    useSignUpMutation();
 
-  let showPassword = true;
+  useEffect(() => {
+    if (isSuccess) {
+      navigation.navigate("Login");
+    } else if (isError) {
+      console.log("response error", error.message);
+    }
+  }, [isSuccess, isError, error, navigation]);
 
   const handleShowPassword = () => {
-    showPassword = !showPassword;
+    setShowPassword(!showPassword);
   };
 
   const navigateTo = () => {
-    return navigation.navigate("Login");
+    navigation.navigate("Login");
   };
+
   const register = async () => {
     try {
       await signUp({
@@ -50,19 +61,16 @@ const SignUp = ({ navigation }) => {
       setPassword("");
       setLocation("");
 
-      if (isSuccess) {
-        navigation.navigate("Login");
-      } else if (isError) {
-        console.log('responser error' , error.message);
-      }
+     
     } catch (err) {
       console.log(err.message);
     }
   };
+
   return (
     <SafeAreaView>
       <View
-        height="$full"
+        style={{ height: windowHeight }}
         paddingHorizontal="$8"
         display="flex"
         alignItems="center"
@@ -115,6 +123,7 @@ const SignUp = ({ navigation }) => {
               <Input>
                 <InputField
                   type={showPassword ? "text" : "password"}
+                  value={password}
                   onChangeText={(text) => setPassword(text)}
                 />
                 <InputSlot pr="$3" onPress={handleShowPassword}>

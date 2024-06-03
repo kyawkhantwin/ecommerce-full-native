@@ -21,8 +21,9 @@ const PopularProducts: React.FC = () => {
 
   const renderProducts = () => {
     if (isSuccess) {
-      return selectPopularProduct.reverse().map((item, index) => {
-        return (
+      console.log(selectPopularProduct);
+      return selectPopularProduct.length !== 0 ? (
+        selectPopularProduct.map((item, index) => (
           <ProductCard
             productId={item.id}
             key={index}
@@ -30,10 +31,22 @@ const PopularProducts: React.FC = () => {
             price={item.price}
             image={item.images[0]}
           />
-        );
-      });
-    } else if (isLoading) {
-      return (
+        ))
+      ) : (
+        <Text>No Product Found</Text>
+      );
+    } else if (isError) {
+      //FIXME:Please do this
+      // return <Text>Error: {error?.data.message}</Text>;
+      return <Text>Error: no connected to db</Text>;
+    }
+  };
+
+  return (
+    <View marginTop={10}>
+      <Heading>Popular Products</Heading>
+
+      {isLoading ? (
         <View
           height={180}
           width="$full"
@@ -44,18 +57,11 @@ const PopularProducts: React.FC = () => {
         >
           <Spinner size="large" />
         </View>
-      );
-    } else if (isError) {
-      return <Text>Error: {error}</Text>;
-    }
-  };
-
-  return (
-    <View marginTop={10}>
-      <Heading>Popular Products</Heading>
-      <ScrollView horizontal={true}>
-        <HStack space="md">{renderProducts()}</HStack>
-      </ScrollView>
+      ) : (
+        <ScrollView horizontal={true}>
+          <HStack space="md">{renderProducts()}</HStack>
+        </ScrollView>
+      )}
     </View>
   );
 };

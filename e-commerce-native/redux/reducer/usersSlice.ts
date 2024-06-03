@@ -10,17 +10,26 @@ const extendedApiSlice = apiSlice.injectEndpoints({
     getUsers: builder.query({
       query: () => "/users",
       transformResponse: (responseData) => {
-        return userAdapter.setAll(initialState, responseData);
+        // Handle the case where responseData is null or undefined
+        const data = responseData || [];
+        return userAdapter.setAll(initialState, data);
       },
-      providesTags: (result, error, arg) => [
-        { type: "User", id: "LIST" },
-        ...result.ids.map((id) => ({ type: "User", id })),
-      ],
+      providesTags: (result, error, arg) => {
+        // Handle the case where result is undefined or empty
+        if (!result || !result.ids.length) {
+          return [{ type: "User", id: "LIST" }];
+        }
+        return [
+          { type: "User", id: "LIST" },
+          ...result.ids.map((id) => ({ type: "User", id })),
+        ];
+      },
     }),
   }),
 });
 
 export const { useGetUsersQuery } = extendedApiSlice;
+
 const selectUsersResult = extendedApiSlice.endpoints.getUsers.select();
 
 const selectUsersData = createSelector(

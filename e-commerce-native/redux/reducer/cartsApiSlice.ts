@@ -2,7 +2,7 @@ import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import apiSlice from "../api/apiSlice";
 
 const cartsAdapter = createEntityAdapter({
-  selectId: (carts) => carts.userId,
+  selectId: (cart) => cart.userId,
 });
 
 const initialState = cartsAdapter.getInitialState({});
@@ -10,15 +10,22 @@ const initialState = cartsAdapter.getInitialState({});
 const extendedApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCarts: builder.query({
-      query: () => `/carts`,
+      query: () => "/carts",
       transformResponse: (responseData) => {
-        // FIXME: change to responseData
-        return cartsAdapter.setAll(initialState, responseData);
+        // Handle the case where responseData is null or undefined
+        const data = responseData || [];
+        return cartsAdapter.setAll(initialState, data);
       },
-      providesTags: (result, error, arg) => [
-        { type: "Cart", id: "LIST" },
-        ...result.ids.map((id) => ({ type: "Cart", id })),
-      ],
+      providesTags: (result, error, arg) => {
+        // Handle the case where result is undefined or empty
+        if (!result || !result.ids.length) {
+          return [{ type: "Cart", id: "LIST" }];
+        }
+        return [
+          { type: "Cart", id: "LIST" },
+          ...result.ids.map((id) => ({ type: "Cart", id })),
+        ];
+      },
     }),
   }),
 });

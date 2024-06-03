@@ -43,11 +43,7 @@ export class AuthService {
       location: user.location,
       id: user.id,
     };
-
-    const data = [{ ...userData, token }];
-    console.log('Login', data);
-
-    return data;
+    return { ...userData, token };
   }
 
   async signup(createSignUpDto: Prisma.UserCreateInput) {
@@ -76,9 +72,6 @@ export class AuthService {
       location: user.location,
       id: user.id,
     };
-    const data = [{ ...userData, token }];
-    console.log('SignIn', data);
-
-    return data;
+    return { ...userData, token };
   }
 }

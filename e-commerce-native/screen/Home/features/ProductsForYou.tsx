@@ -13,17 +13,24 @@ const ProductsForYou: React.FC = () => {
 
   const renderProducts = () => {
     if (isSuccess) {
-      return selectAllProduct.map((item, index) => (
-        <ProductCard
-          productId={item.id}
-          key={index}
-          name={item.title}
-          price={item.price}
-          image={item.images[0]}
-        />
-      ));
+      console.log(selectAllProduct);
+      return selectAllProduct.length !== 0 ? (
+        selectAllProduct.map((item, index) => (
+          <ProductCard
+            productId={item.id}
+            key={index}
+            name={item.title}
+            price={item.price}
+            image={item.images[0]}
+          />
+        ))
+      ) : (
+        <Text>No Product Found</Text>
+      );
     } else if (isError) {
-      return <Text>{error}</Text>;
+      //FIXME:Please do this
+      // return <Text>Error: {error?.data.message}</Text>;
+      return <Text>Error: no connected to db</Text>;
     } else if (isLoading) {
       return (
         <View
