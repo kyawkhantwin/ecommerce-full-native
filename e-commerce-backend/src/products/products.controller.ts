@@ -6,16 +6,23 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
+  HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Prisma } from '@prisma/client';
+import { error } from 'console';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  create(@Body() createProductDto: Prisma.ProductCreateManyInput) {
+  create(
+    @Body(ValidationPipe)
+    createProductDto: Prisma.ProductCreateManyInput,
+  ) {
     return this.productsService.create(createProductDto);
   }
 
@@ -25,16 +32,17 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
-    @Body() updateProductDto: Prisma.ProductUpdateManyMutationInput,
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe)
+    updateProductDto: Prisma.ProductUpdateManyMutationInput,
   ) {
-    return this.productsService.update(+id, updateProductDto);
+    return this.productsService.update(id, updateProductDto);
   }
 
   @Delete(':id')

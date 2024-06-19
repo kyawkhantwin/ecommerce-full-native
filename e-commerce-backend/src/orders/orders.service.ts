@@ -9,9 +9,8 @@ export class OrdersService {
     // Find the cart and include its products, ensuring it belongs to the user
     const cart = await this.databaseService.cart.findFirst({
       where: { id: createOrderDto.cartId, userId: createOrderDto.userId },
-      include: { products: true },
+      include: { productCarts: true },
     });
-
     // Check if the cart exists and belongs to the user
     if (!cart) {
       throw new NotFoundException(
@@ -28,7 +27,7 @@ export class OrdersService {
 
     // Create product orders based on the cart's products
     await this.databaseService.productOrder.createMany({
-      data: cart.products.map((product) => ({
+      data: cart.productCarts.map((product) => ({
         orderId: order.id,
         productId: product.productId,
         quantity: product.quantity,
@@ -49,33 +48,95 @@ export class OrdersService {
     return await this.databaseService.order.findUnique({
       where: { id: order.id },
       include: {
-        products: true,
+        productOrders: {
+          include: {
+            product: true,
+          },
+        },
         user: true,
       },
     });
   }
 
-  async findAll() {
-    const order = await this.databaseService.order.findMany({
+  async findAll(status: string, latest?: number) {
+    let whereClause: any;
+    if (status === 'pending') {
+      whereClause = { status: 'PENDING' };
+    } else if (status === 'done') {
+      whereClause = { status: 'DONE' };
+    }
+
+    const query: any = {
+      where: whereClause,
+      orderBy: {
+        createdAt: 'desc',
+      },
       include: {
-        products: true,
+        productOrders: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    };
+
+    if (latest !== undefined && latest > 0) {
+      query.take = latest;
+    }
+
+    const orders = await this.databaseService.order.findMany(query);
+
+    if (!orders || orders.length === 0) {
+      throw new NotFoundException('No orders found');
+    }
+
+    return orders;
+  }
+
+  async findAllUserOrder(userId: number, status: string) {
+    let whereClause;
+    if (status === 'pending') {
+      whereClause = { status: 'PENDING', userId };
+    } else if (status === 'done') {
+      whereClause = { status: 'DONE', userId };
+    } else {
+      throw new NotFoundException('Invalid status');
+    }
+
+    const orders = await this.databaseService.order.findMany({
+      where: whereClause,
+      include: {
+        productOrders: {
+          include: {
+            product: true,
+          },
+        },
         user: true,
       },
     });
-    if (!order) {
-      throw new NotFoundException('Order Empty');
+
+    if (!orders || orders.length === 0) {
+      throw new NotFoundException('No orders found');
     }
-    return order;
+
+    return orders;
   }
 
   async findOne(id: number) {
-    return await this.databaseService.order.findUnique({
+    const order = await this.databaseService.order.findUnique({
       where: { id },
       include: {
-        products: true,
+        productOrders: {
+          include: {
+            product: true,
+          },
+        },
         user: true,
       },
     });
+    console.log(order);
+    return order;
   }
 
   // TODO: Add an update method if order status feature is added
@@ -90,7 +151,7 @@ export class OrdersService {
     return await this.databaseService.order.delete({
       where: { id },
       include: {
-        products: true,
+        productOrders: { include: { product: true } },
         user: true,
       },
     });

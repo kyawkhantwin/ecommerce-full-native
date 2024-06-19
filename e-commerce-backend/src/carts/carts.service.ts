@@ -16,23 +16,22 @@ export class CartsService {
   ) {
     let cart = await this.databaseService.cart.findUnique({
       where: { userId },
-      include: { products: true },
+      include: { productCarts: true },
     });
 
-    // If no existing cart, create a new one
     if (!cart) {
       cart = await this.databaseService.cart.create({
         data: {
           userId,
         },
-        include: { products: true },
+        include: { productCarts: true },
       });
     } else {
-      const existingProduct = cart.products.find(
+      const existingProductInCart = cart.productCarts.find(
         (product) => product.productId === createCartDto.productId,
       );
 
-      if (existingProduct) {
+      if (existingProductInCart) {
         throw new ConflictException('Product already exists in the cart');
       }
     }
@@ -50,7 +49,7 @@ export class CartsService {
     return await this.databaseService.cart.findUnique({
       where: { id: cart.id },
       include: {
-        products: true,
+        productCarts: true,
       },
     });
   }
@@ -58,7 +57,7 @@ export class CartsService {
   async findAll() {
     const cart = await this.databaseService.cart.findMany({
       include: {
-        products: true,
+        productCarts: true,
       },
     });
 
@@ -68,7 +67,7 @@ export class CartsService {
     const cart = await this.databaseService.cart.findUnique({
       where: { userId },
       include: {
-        products: true,
+        productCarts: { include: { product: true } },
       },
     });
 
@@ -79,20 +78,20 @@ export class CartsService {
     return cart;
   }
 
-  async findOne(id: number) {
-    const cart = await this.databaseService.cart.findUnique({
-      where: { id },
-      include: {
-        products: true,
-      },
-    });
+  // async findOne(id: number) {
+  //   const cart = await this.databaseService.cart.findUnique({
+  //     where: { id },
+  //     include: {
+  //       products: true,
+  //     },
+  //   });
 
-    if (!cart) {
-      throw new NotFoundException('Cart not found');
-    }
+  //   if (!cart) {
+  //     throw new NotFoundException('Cart not found');
+  //   }
 
-    return cart;
-  }
+  //   return cart;
+  // }
 
   async update(
     id: number,
@@ -141,23 +140,48 @@ export class CartsService {
 
     return updatedProductCart;
   }
-
-  async remove(id: number) {
+  async remove(cartId: number, productId: number) {
     // Check if the cart exists
     const cart = await this.databaseService.cart.findUnique({
-      where: { id },
+      where: { id: cartId },
+      include: {
+        productCarts: { include: { product: true } }, // Include products to check if other products exist
+      },
     });
-
+  
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
-
-    // Delete related product carts
-    await this.databaseService.productCart.deleteMany({
-      where: { cartId: id },
+  
+    // Check if the product exists in the cart
+    const productInCart = cart.productCarts.find((productCart) => productCart.productId === productId);
+    if (!productInCart) {
+      throw new NotFoundException('Product not found in the cart');
+    }
+  
+    // Delete the product-cart relation
+    await this.databaseService.productCart.delete({
+      where: {
+        cartId_productId: {
+          cartId: cartId,
+          productId: productId,
+        },
+      },
     });
-
-    // Delete the cart
-    return await this.databaseService.cart.delete({ where: { id } });
+  
+    // Check if the cart has other products
+    const remainingProducts = await this.databaseService.productCart.findMany({
+      where: { cartId: cartId },
+    });
+  
+    // If no other products exist, delete the cart
+    if (remainingProducts.length === 0) {
+      return await this.databaseService.cart.delete({
+        where: { id: cartId },
+      });
+    }
+  
+    return { message: 'Product removed from cart' };
   }
+  
 }

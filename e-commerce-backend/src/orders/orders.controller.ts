@@ -1,6 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { Prisma } from '@prisma/client';
 
 @Controller('orders')
 export class OrdersController {
@@ -18,16 +26,23 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@Query('status') status: string, @Query('latest') latest: string) {
+    return this.ordersService.findAll(status, +latest);
+  }
+
+  @Get('user/:userId')
+  findAllUserOrder(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('status') status: string,
+  ) {
+    return this.ordersService.findAllUserOrder(userId, status);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.findOne(id);
   }
-  //TODO: uncomment if order status feature added
-
+  // alreay updated in transaction
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
   //   return this.ordersService.update(+id, updateOrderDto);

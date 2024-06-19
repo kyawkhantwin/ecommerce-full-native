@@ -6,7 +6,8 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
+  ParseIntPipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CartsService } from './carts.service';
 import { Prisma } from '@prisma/client';
@@ -16,41 +17,41 @@ export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
   @Post()
-  create(
-    @Body()
+  async create(
+    @Body(ValidationPipe)
     createCartDto: Prisma.ProductCartCreateManyCartInput & { userId: number },
   ) {
     const { userId, ...product } = createCartDto;
-    return this.cartsService.create(userId, product);
+    return await this.cartsService.create(userId, product);
   }
 
   @Get()
-  findAll() {
-    return this.cartsService.findAll();
-  }
-  @Get()
-  findUserCart(@Query() userId: number) {
-    return this.cartsService.findUserCart(userId);
+  async findAll() {
+    return await this.cartsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartsService.findOne(+id);
+  @Get('/user/:userId')
+  async findUserCart(@Param('userId', ParseIntPipe) userId: number) {
+    return await this.cartsService.findUserCart(userId);
   }
+
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body()
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe)
     updateCartDto: Prisma.ProductCartUpdateManyMutationInput & {
       userId: number;
       productId: number;
     },
   ) {
-    return this.cartsService.update(+id, updateCartDto);
+    return await this.cartsService.update(id, updateCartDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartsService.remove(+id);
+  @Delete(':cartId/products/:productId')
+  async removeProductFromCart(
+    @Param('cartId', ParseIntPipe) cartId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+  ) {
+    return await this.cartsService.remove(cartId, productId);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 
 import { Prisma } from '@prisma/client';
@@ -18,8 +18,8 @@ export class TransactionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(+id);
+  findOne(@Param('id',ParseIntPipe) id: number) {
+    return this.transactionsService.findOne(id);
   }
 
   // @Patch(':id')

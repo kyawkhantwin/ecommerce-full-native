@@ -13,12 +13,13 @@ export class ProductsService {
 
   async create(createProductDto: Prisma.ProductCreateManyInput) {
     try {
+      console.log(createProductDto);
       return await this.databaseService.product.create({
         data: createProductDto,
         include: { category: true },
       });
     } catch (error) {
-      throw new ConflictException('Product could not be created');
+      throw new ConflictException('Product could not be created', error);
     }
   }
 
@@ -62,6 +63,8 @@ export class ProductsService {
       if (!product) {
         throw new NotFoundException('Product not found');
       }
+
+      console.log(updateProductDto)
 
       return await this.databaseService.product.update({
         where: { id },

@@ -12,11 +12,12 @@ export class CategoriesService {
 
   async create(createCategoryDto: Prisma.CategoryCreateInput) {
     try {
+      console.log(createCategoryDto);
       return await this.databaseService.category.create({
         data: createCategoryDto,
       });
     } catch (error) {
-      throw new ConflictException('Category could not be created');
+      throw new ConflictException(error);
     }
   }
 

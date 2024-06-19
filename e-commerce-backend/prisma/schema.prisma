@@ -27,8 +27,8 @@ model Product {
   categoryId  Int
   thumbnail   String
   images      String[]
-  carts       ProductCart[]
-  orders      ProductOrder[]
+  productCarts       ProductCart[]
+  productOrders      ProductOrder[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -36,7 +36,8 @@ model Product {
 // Category Model
 model Category {
   id        Int        @id @default(autoincrement())
-  name      String
+  name      String @unique
+  image String?
   products  Product[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -46,9 +47,9 @@ model Category {
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int         @unique
-  user      User       @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
  
-  products  ProductCart[]
+  productCarts  ProductCart[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -68,20 +69,24 @@ model Order {
   id        Int        @id @default(autoincrement())
   userId    Int
   user      User       @relation(fields: [userId], references: [id])
-  products  ProductOrder[]
+  status OrderStatus @default(PENDING)
+  productOrders  ProductOrder[]
   transaction Transaction? 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
-
+enum OrderStatus {
+  DONE 
+  PENDING
+}
 // OrderProduct Model (Junction Table for Many-to-Many between Order and Product)
 model ProductOrder {
   orderId   Int
   order     Order      @relation(fields: [orderId], references: [id])
   productId Int
-  product   Product    @relation(fields: [productId], references: [id])
   price Int
   quantity  Int
+  product   Product    @relation(fields: [productId], references: [id])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -95,7 +100,7 @@ model Transaction {
   order     Order      @relation(fields: [orderId], references: [id])
   userId    Int
   user      User       @relation(fields: [userId], references: [id])
-  amount    Int
+  total    Int
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -104,7 +109,7 @@ model Transaction {
 model User {
   id         Int        @id @default(autoincrement())
   email      String @unique
-  username   String 
+  username   String @unique 
   password   String
   location   String
   createdAt  DateTime   @default(now())

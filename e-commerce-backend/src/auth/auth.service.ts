@@ -15,10 +15,11 @@ export class AuthService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async login(createLoginDto: CreateLoginDto) {
-    const { nameOrEmail, password } = createLoginDto;
+    const { emailOrUsername, password } = createLoginDto;
+    console.log(emailOrUsername, 'change the name');
     const user = await this.databaseService.user.findFirst({
       where: {
-        email: nameOrEmail,
+        OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
       },
     });
 

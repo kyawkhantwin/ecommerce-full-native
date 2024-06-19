@@ -8,8 +8,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  login(@Body() CreateLoginDto: CreateLoginDto) {
-    return this.authService.login(CreateLoginDto);
+  login(@Body() createLoginDto: CreateLoginDto) {
+    console.log(createLoginDto, 'bakend controller ');
+    return this.authService.login(createLoginDto);
   }
 
   @Post('signup')
